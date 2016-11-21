@@ -100,7 +100,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void test5(View v) {
-        FileOutputStream fout = new FileOutputStream(new File(sdroot, "file1.txt"));
-        
+        try {
+            FileOutputStream fout = new FileOutputStream(new File(sdroot, "file1.txt"));
+            fout.write("Hello1".getBytes());
+            fout.flush();
+            fout.close();
+            Toast.makeText(this, "Save1 OK", Toast.LENGTH_SHORT).show();
+        } catch ( Exception e) {
+            Log.v("brad", "test5() : " + e.toString());
+        }
     }
+    public void test6(View v){
+        try {
+            FileOutputStream fout = new FileOutputStream(new File(sdroot, "file1.txt"));
+            fout.write("Hello1".getBytes());
+            fout.flush();
+            fout.close();
+            Toast.makeText(this, "Save2 OK", Toast.LENGTH_SHORT).show();
+        } catch ( Exception e) {
+            Log.v("brad", "test6() : " + e.toString());
+        }
+    }
+    /////////////////////////////////////////////////
 }
