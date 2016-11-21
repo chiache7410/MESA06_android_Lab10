@@ -1,19 +1,32 @@
 package tw.org.iii.lab10;
 
+import android.Manifest;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     private TextView tv;
+    private File sdroot;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,7 +34,33 @@ public class MainActivity extends AppCompatActivity {
         tv = (TextView)findViewById(R.id.tv);
         sp = getSharedPreferences("gamedata", MODE_PRIVATE);
         editor = sp.edit();
+
+        String state = Environment.getExternalStorageState();
+        Log.v("brad", state);
+        sdroot = Environment.getExternalStorageDirectory();
+        Log.v("brad", sdroot.getAbsolutePath());
+        //以下是檢查危險權限
+        if ( ContextCompat.checkSelfPermission(
+                this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED ) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
+                    123);
+        }
     }
+    // callback
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                Log.v("brad", "OK");
+            }
+        }
+    }
+
     //偏好設定 => save
     public void test1(View v){
         editor.putInt("stage", 3);
@@ -34,5 +73,34 @@ public class MainActivity extends AppCompatActivity {
         int stage = sp.getInt("stage", 0);
         String name = sp.getString("user","nobody");
         tv.setText("Stage: " + stage + "\n" + "User: " + name);
+    }
+    public void test3(View v) {
+        //在內存空間之下的FileSystem
+        try {
+            FileOutputStream fout = openFileOutput("test.data", MODE_PRIVATE);
+            fout.write("Hello".getBytes());
+            fout.flush();
+            fout.close();
+            Toast.makeText(this, "Save test.data OK", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Log.v("brad", "test3()" + e.toString());
+        }
+    }
+    public void test4(View v){
+        tv.setText("");
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(openFileInput("test.data")));
+            String line;
+            while ( (line=reader.readLine()) != null){
+                tv.append(line + "\n");
+            }
+            reader.close();
+        } catch (IOException e) {
+            Log.v("brad", "test4()" + e.toString());
+        }
+    }
+    public void test5(View v) {
+        FileOutputStream fout = new FileOutputStream(new File(sdroot, "file1.txt"));
+        
     }
 }
